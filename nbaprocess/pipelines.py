@@ -10,11 +10,5 @@ from itemadapter import ItemAdapter
 
 class NbaprocessPipeline:
     def process_item(self, item, spider):
-        adapter = ItemAdapter(item)
-
-        # Convert data
-        adapter["year_min"] = int(adapter["year_min"] or -1)
-        adapter["year_max"] = int(adapter["year_max"] or -1)
-        adapter["weight"] = int(adapter["weight"] or -1)
         
         return item
