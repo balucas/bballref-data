@@ -6,7 +6,6 @@ GAMELOG_TABLE_XP = "body/div[@id='wrap']/div[@id='content']//table[@id='pgl_basi
 
 class PlayersSpider(scrapy.Spider):
 	name = "players"
-	
 	start_urls = ["https://www.basketball-reference.com/players/"]
 
 	def parse(self, response):
@@ -18,5 +17,22 @@ class PlayersSpider(scrapy.Spider):
 		yield from response.follow_all(active_player_links, self.parse_player)
 
 	def parse_player(self, response):
-		#TODO: parse gamelog table
-		yield response
+		# parse game log table
+		gamelogs_rows = response.xpath("body/div[@id='wrap']/div[@id='content']//table[@id='pgl_basic']/tbody/tr[not(@class='thead')]")
+		gamelogs = []
+		for row in gamelogs_rows:
+			gamelog = {}
+			# plain text
+			text_stat = row.xpath("td[./text()]")
+			for stat in text_stat:
+				gamelog[stat.xpath("@data-stat").get()] = stat.xpath("text()").get()
+
+			# links
+			link_stat = row.xpath("td[a]")
+			for link in link_stat:
+				gamelog[link.xpath("@data-stat").get()] = link.xpath("a/text()").get()
+
+			gamelogs.append(gamelog)
+
+		yield 
+
