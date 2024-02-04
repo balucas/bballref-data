@@ -13,10 +13,15 @@ class PlayersSpider(scrapy.Spider):
 		yield from response.follow_all(letter_links, self.parse_letter)
 
 	def parse_letter(self, response):
-		active_player_links = [href[:-5] + '/gamelog/2024' for href in response.xpath("//table/tbody/tr/th/strong/a/@href")][:3]
+		active_player_links = [href.get()[:-5] + '/gamelog/2024' for href in response.xpath("//table/tbody/tr/th/strong/a/@href")][:2]
 		yield from response.follow_all(active_player_links, self.parse_player)
 
 	def parse_player(self, response):
+		## TODO: parse player season and career averages
+
+		# parse player info
+		name = response.xpath("body/div[@id='wrap']/div[@id='info']/div[@id='meta']/div/h1/span/text()").get()[:-17]
+
 		# parse game log table
 		gamelogs_rows = response.xpath("body/div[@id='wrap']/div[@id='content']//table[@id='pgl_basic']/tbody/tr[not(@class='thead')]")
 		gamelogs = []
@@ -34,5 +39,8 @@ class PlayersSpider(scrapy.Spider):
 
 			gamelogs.append(gamelog)
 
-		yield 
+		yield {
+			"name": name,
+			"gamelogs": gamelogs
+		}
 
