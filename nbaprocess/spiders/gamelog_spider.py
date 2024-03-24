@@ -1,4 +1,5 @@
 from pathlib import Path
+from ..items import Gamelog
 
 import scrapy
 
@@ -19,7 +20,17 @@ class GamelogSpider(scrapy.Spider):
 	def parse_player(self, response):
 		## TODO: parse player season and career averages
 		## TODO: split up logs and player info
-		
+
+		def get_stat(row, stat):
+			datum = row.xpath(f"td[@data-stat='{stat}']")
+			if not datum:
+				return None
+
+			if datum[0].xpath("a"):
+				return datum[0].xpath("a/text()").get()
+
+			return datum[0].xpath("text()").get()
+
 		# gamelog meta
 		url_split = response.url.split("/")
 
@@ -31,15 +42,39 @@ class GamelogSpider(scrapy.Spider):
 		for row in gamelogs_rows:
 
 			# gamelog player id and season
-			gamelog = {
-				"player_id": url_split[5],
-				"season": url_split[-1]
-			}
+			gamelog = Gamelog()
+			gamelog["player_id"] = url_split[5]
+			gamelog["season"] = url_split[-1]
 
 			# plain text
-			text_stat = row.xpath("td[./text()]")
-			for stat in text_stat:
-				gamelog[stat.xpath("@data-stat").get()] = stat.xpath("text()").get()
+			gamelog["age"] = get_stat(row, "age")
+			gamelog["status"] = "INACTIVE" if row.xpath(f"td[@data-stat='reason']") else "ACTIVE"
+			gamelog["game_location"] = "AWAY" if row.xpath(f"td[@data-stat='game_location']") else "HOME"
+			gamelog["game_result"] = get_stat(row, "game_result")
+			gamelog["gs"] = get_stat(row, "gs")
+			gamelog["mp"] = get_stat(row, "mp")
+			gamelog["fg"] = get_stat(row, "fg")
+			gamelog["fga"] = get_stat(row, "fga")
+			gamelog["fg_pct"] = get_stat(row, "fg_pct")
+			gamelog["fg3"] = get_stat(row, "fg3")
+			gamelog["fg3a"] = get_stat(row, "fg3a")
+			gamelog["fg3_pct"] = get_stat(row, "fg3_pct")
+			gamelog["ft"] = get_stat(row, "ft")
+			gamelog["fta"] = get_stat(row, "fta")
+			gamelog["orb"] = get_stat(row, "orb")
+			gamelog["drb"] = get_stat(row, "drb")
+			gamelog["trb"] = get_stat(row, "trb")
+			gamelog["ast"] = get_stat(row, "ast")
+			gamelog["stl"] = get_stat(row, "stl")
+			gamelog["blk"] = get_stat(row, "blk")
+			gamelog["tov"] = get_stat(row, "tov")
+			gamelog["pf"] = get_stat(row, "pf")
+			gamelog["pts"] = get_stat(row, "pts")
+			gamelog["game_score"] = get_stat(row, "game_score")
+			gamelog["plus_minus"] = get_stat(row, "plus_minus")
+			gamelog["date_game"] = get_stat(row, "date_game")
+			gamelog["team_id"] = get_stat(row, "team_id")
+			gamelog["opp_id"] = get_stat(row, "opp_id")
 
 			# links
 			link_stat = row.xpath("td[a]")
