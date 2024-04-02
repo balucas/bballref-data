@@ -14,11 +14,11 @@ class NbaprocessItem(scrapy.Item):
 
 class Gamelog(scrapy.Item):
 
-    player_id = Field()
+    _id = Field()
     season = Field()
-    age = Field()
+    # season_game = Field() # disabled
+    # age = Field()         # disabled
     status = Field()
-    # reason
     game_result = Field()
     game_location = Field()
     gs = Field()
@@ -31,6 +31,7 @@ class Gamelog(scrapy.Item):
     fg3_pct = Field()
     ft = Field()
     fta = Field()
+    ft_pct = Field()
     orb = Field()
     drb = Field()
     trb = Field()
@@ -40,7 +41,7 @@ class Gamelog(scrapy.Item):
     tov = Field()
     pf = Field()
     pts = Field()
-    game_score = Field()
+    # game_score = Field()      # disabled, not available on boxscore page
     plus_minus = Field()
     date_game = Field()
     team_id = Field()

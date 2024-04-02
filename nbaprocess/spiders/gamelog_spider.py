@@ -1,9 +1,8 @@
 from pathlib import Path
+from datetime import datetime
 from ..items import Gamelog
 
 import scrapy
-
-GAMELOG_TABLE_XP = "body/div[@id='wrap']/div[@id='content']//table[@id='pgl_basic']/tbody/tr[not(@class='thead')]"
 
 class GamelogSpider(scrapy.Spider):
 	name = "gamelog"
@@ -40,45 +39,48 @@ class GamelogSpider(scrapy.Spider):
 		# parse game log table
 		gamelogs_rows = response.xpath("body/div[@id='wrap']/div[@id='content']//table[@id='pgl_basic']/tbody/tr[not(@class='thead')]")
 		for row in gamelogs_rows:
+			game_result = get_stat(row, "game_result")
+			game_id = row.xpath("td[@data-stat='date_game']/a/@href").get()[11:-5]
+			date_game = datetime.strptime(game_id[:-4], "%Y%m%d")
+			played = not row.xpath(f"td[@data-stat='reason']")
 
-			# gamelog player id and season
+			# gamelog ids and season info
 			gamelog = Gamelog()
-			gamelog["player_id"] = url_split[5]
+			gamelog["_id"] = {
+				"player_id": url_split[5],
+				"game_id": game_id
+			}
 			gamelog["season"] = url_split[-1]
 
-			# plain text
-			gamelog["age"] = get_stat(row, "age")
-			gamelog["status"] = "INACTIVE" if row.xpath(f"td[@data-stat='reason']") else "ACTIVE"
+			# plain text stats
+			gamelog["status"] = "ACTIVE" if played else "INACTIVE"
 			gamelog["game_location"] = "AWAY" if row.xpath(f"td[@data-stat='game_location']") else "HOME"
-			gamelog["game_result"] = get_stat(row, "game_result")
-			gamelog["gs"] = get_stat(row, "gs")
-			gamelog["mp"] = get_stat(row, "mp")
-			gamelog["fg"] = get_stat(row, "fg")
-			gamelog["fga"] = get_stat(row, "fga")
-			gamelog["fg_pct"] = get_stat(row, "fg_pct")
-			gamelog["fg3"] = get_stat(row, "fg3")
-			gamelog["fg3a"] = get_stat(row, "fg3a")
-			gamelog["fg3_pct"] = get_stat(row, "fg3_pct")
-			gamelog["ft"] = get_stat(row, "ft")
-			gamelog["fta"] = get_stat(row, "fta")
-			gamelog["orb"] = get_stat(row, "orb")
-			gamelog["drb"] = get_stat(row, "drb")
-			gamelog["trb"] = get_stat(row, "trb")
-			gamelog["ast"] = get_stat(row, "ast")
-			gamelog["stl"] = get_stat(row, "stl")
-			gamelog["blk"] = get_stat(row, "blk")
-			gamelog["tov"] = get_stat(row, "tov")
-			gamelog["pf"] = get_stat(row, "pf")
-			gamelog["pts"] = get_stat(row, "pts")
-			gamelog["game_score"] = get_stat(row, "game_score")
-			gamelog["plus_minus"] = get_stat(row, "plus_minus")
-			gamelog["date_game"] = get_stat(row, "date_game")
+			gamelog["game_result"] = int(game_result[game_result.find("(")+1:game_result.find(")")])
+			gamelog["gs"] = get_stat(row, "gs") == "1"
+			mp = get_stat(row, "mp").split(':') if played else None
+			gamelog["mp"] = int(mp[0]) * 60 + int(mp[1]) if played else None
+			gamelog["fg"] = int(get_stat(row, "fg")) if played else None
+			gamelog["fga"] = int(get_stat(row, "fga")) if played else None
+			gamelog["fg_pct"] = round(gamelog["fg"]/gamelog["fga"], 3) if gamelog["fg"] else None
+			gamelog["fg3"] = int(get_stat(row, "fg3")) if played else None
+			gamelog["fg3a"] = int(get_stat(row, "fg3a")) if played else None
+			gamelog["fg3_pct"] = round(gamelog["fg3"]/gamelog["fg3a"], 3) if gamelog["fg3"] else None
+			gamelog["ft"] = int(get_stat(row, "ft")) if played else None
+			gamelog["fta"] = int(get_stat(row, "fta")) if played else None
+			gamelog["ft_pct"] = round(gamelog["ft"]/gamelog["fta"], 3) if gamelog["ft"] else None
+			gamelog["orb"] = int(get_stat(row, "orb")) if played else None
+			gamelog["drb"] = int(get_stat(row, "drb")) if played else None
+			gamelog["trb"] = int(get_stat(row, "trb")) if played else None
+			gamelog["ast"] = int(get_stat(row, "ast")) if played else None
+			gamelog["stl"] = int(get_stat(row, "stl")) if played else None
+			gamelog["blk"] = int(get_stat(row, "blk")) if played else None
+			gamelog["tov"] = int(get_stat(row, "tov")) if played else None
+			gamelog["pf"] = int(get_stat(row, "pf")) if played else None
+			gamelog["pts"] = int(get_stat(row, "pts")) if played else None
+			# gamelog["game_score"] = get_stat(row, "game_score")
+			gamelog["plus_minus"] = int(get_stat(row, "plus_minus")) if played else None
+			gamelog["date_game"] = date_game 
 			gamelog["team_id"] = get_stat(row, "team_id")
 			gamelog["opp_id"] = get_stat(row, "opp_id")
-
-			# links
-			link_stat = row.xpath("td[a]")
-			for link in link_stat:
-				gamelog[link.xpath("@data-stat").get()] = link.xpath("a/text()").get()
 			
 			yield gamelog

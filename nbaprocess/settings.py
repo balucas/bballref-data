@@ -1,3 +1,6 @@
+from dotenv import load_dotenv
+import os
+load_dotenv()
 # Scrapy settings for nbaprocess project
 #
 # For simplicity, this file contains only settings considered important or
@@ -91,3 +94,7 @@ AUTOTHROTTLE_TARGET_CONCURRENCY = 0.5
 REQUEST_FINGERPRINTER_IMPLEMENTATION = "2.7"
 TWISTED_REACTOR = "twisted.internet.asyncioreactor.AsyncioSelectorReactor"
 FEED_EXPORT_ENCODING = "utf-8"
+
+# Database
+MONGO_URI = os.environ["MONGO_URI"]
+MONGO_DATABASE = "nba"
