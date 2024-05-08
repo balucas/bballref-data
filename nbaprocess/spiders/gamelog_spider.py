@@ -9,11 +9,11 @@ class GamelogSpider(scrapy.Spider):
 	start_urls = ["https://www.basketball-reference.com/players/"]
 
 	def parse(self, response):
-		letter_links = response.xpath("//ul[@class='page_index']//li/a[re:match(text(),'^.$')]")[:1]
+		letter_links = response.xpath("//ul[@class='page_index']//li/a[re:match(text(),'^.$')]")
 		yield from response.follow_all(letter_links, self.parse_letter)
 
 	def parse_letter(self, response):
-		active_player_links = [href.get()[:-5] + '/gamelog/2024' for href in response.xpath("//table/tbody/tr/th/strong/a/@href")][:2]
+		active_player_links = [href.get()[:-5] + '/gamelog/2024' for href in response.xpath("//table/tbody/tr/th/strong/a/@href")]
 		yield from response.follow_all(active_player_links, self.parse_player)
 
 	def parse_player(self, response):
