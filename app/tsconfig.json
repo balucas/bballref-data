@@ -8,6 +8,12 @@
     "baseUrl": "src",
     "paths": {
       "@types/*": ["types/*"]
-    }
+    },
+    "target": "ESNext", // Modern JavaScript features
+    "module": "ESNext", // ES module system
+    "jsx": "react", // React JSX support
+    "strict": true, // Enable strict type checking
+    "esModuleInterop": true, // Compatibility with CommonJS modules
+    "forceConsistentCasingInFileNames": true // Case-sensitive imports
   }
 }
