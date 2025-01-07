@@ -1,0 +1,31 @@
+export interface Gamelog {
+    _id: string;
+    date_game: string;
+    season: string;
+    status: string;
+    game_result?: string;
+    game_location?: string;
+    gs?: string;
+    mp?: number;
+    fg?: number;
+    fga?: number;
+    fg_pct?: number;
+    fg3?: number;
+    fg3a?: number;
+    fg3_pct?: number;
+    ft?: number;
+    fta?: number;
+    ft_pct?: number;
+    orb?: number;
+    drb?: number;
+    trb?: number;
+    ast?: number;
+    stl?: number;
+    blk?: number;
+    tov?: number;
+    pf?: number;
+    pts?: number;
+    plus_minus?: number;
+    team_id?: number;
+    opp_id?: number;
+}
